@@ -7,9 +7,9 @@ from common import node_args
 
 args = node_args(__doc__)
 interval = str(args.interval)
-programs = [["healthometer.py"], ["node_normal.py"], ["node_offline.py"],
-         ["node_outdated.py"], ["node_failing.py"], ["node_disabled.py"],
-         ["node_clock_issue.py"]]
+programs = [["healthometer.py"], ["node_1_normal.py"], ["node_2_offline.py"],
+         ["node_3_outdated.py"], ["node_4_failing.py"], ["node_5_disabled.py"],
+         ["node_6_clock_issue.py"]]
 processes = []
 try:
     for i, p in enumerate(programs):

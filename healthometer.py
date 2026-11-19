@@ -8,14 +8,14 @@ import socket
 import threading
 import time
 
-from common import HEALTHOMETER_ADDR, NODES, HELLO, HEARTBEAT, GOODBYE, DEFAULT_INTERVAL, pack, unpack, fmt
+from common import HEALTHOMETER_ADDR, NODES, MESSAGE_TYPES, HELLO, HEARTBEAT, GOODBYE, DEFAULT_INTERVAL, pack, unpack, fmt
 
 # Node statuses
 OFFLINE = "Offline"                 # never sent anything, or last message was goodbye
 ONLINE = "Online"                   # heartbeats arriving with a fresh timestamp
 OUTDATED = "Outdated"               # heartbeat timestamp too old
-NOT_RESPONDING = "Not Responding"   # went silent without goodbye
 CLOCK_ISSUE = "Clock Issue"         # heartbeat timestamp is in the future
+NOT_RESPONDING = "Not Responding"   # went silent without goodbye
 
 
 class NodeState:
@@ -53,7 +53,7 @@ class Healthometer:
 
     # ---- classification -------------------------------------------------
     def evaluate(self, state, time_now):
-        if state.last_type is None or state.last_type == GOODBYE: # if stopped normally; last_message = goodbye tells it apart
+        if state.last_type is None or state.last_type == GOODBYE:
             return OFFLINE
         if time_now - state.last_recv > self.silence_limit:
             return NOT_RESPONDING
@@ -89,7 +89,7 @@ class Healthometer:
         if not msg:
             return
         node_id, msg_type = msg.get("node_id"), msg.get("type")
-        if node_id not in self.states or msg_type not in [HELLO, HEARTBEAT, GOODBYE]:
+        if node_id not in self.states or msg_type not in MESSAGE_TYPES:
             self.log.warning("ignoring message from unknown sender/type: %s", msg)
             return
         time_now = time.time()
@@ -108,10 +108,10 @@ class Healthometer:
 
             if msg_type == HELLO:
                 state.last_recover, state.recover_count = None, 0
-                self.set_status(node_id, state, ONLINE, "startup")
+                self.set_status(node_id, state, ONLINE, "(startup)")
                 self.reply(addr, type="ack", **{"for": msg_type})
             elif msg_type == GOODBYE:
-                self.set_status(node_id, state, OFFLINE, "shutdown")
+                self.set_status(node_id, state, OFFLINE, "(shutdown)")
                 self.reply(addr, type="ack", **{"for": msg_type})
             else:
                 new = self.evaluate(state, time_now)
