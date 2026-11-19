@@ -1,0 +1,4 @@
+__pycache__/
+status.csv
+status.md
+*.log
